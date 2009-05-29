@@ -4,6 +4,9 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from models import Bin
 
+import md5
+import os
+
 class MainHandler(webapp.RequestHandler):
     def get(self):
         oldbins = []
@@ -17,11 +20,20 @@ class MainHandler(webapp.RequestHandler):
 
     def post(self):
         bin = Bin()
-        bin.privatebin = bool( self.request.get( 'privatebin' ) )
+        if bool( self.request.get( 'privatebin' ) ):
+            bin.privatebin = self.make_secret()
         bin.escapehtml = bool( self.request.get( 'escapehtml' ) )
-        self.response.headers.add_header( 'Set-Cookie', 'pb_' + bin.name + '=y' )
+        self.response.headers.add_header( 'Set-Cookie', 'pb_' + bin.name + '=' + bin.privatebin )
         bin.put()
         self.redirect('/%s' % bin.name)
+    
+    def make_secret( self ):
+        secret = md5.new()
+        secret.update( 'postbin ' + os.urandom( 42 ) )
+        secret.update( secret.hexdigest() )
+        secret.update( 'postbin ' + os.urandom( 42 ) )
+        return secret.hexdigest()
+
 
 if __name__ == '__main__':
     wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([('/', MainHandler)], debug=True))

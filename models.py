@@ -28,7 +28,7 @@ class Bin(db.Model):
     name = db.StringProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
     updated = db.DateTimeProperty(auto_now=True)
-    privatebin = db.BooleanProperty()
+    privatebin = db.StringProperty()
     escapehtml = db.BooleanProperty()
     
     def __init__(self, *args, **kwargs):
