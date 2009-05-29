@@ -9,10 +9,7 @@ import os
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
-        oldbins = []
-        for k in self.request.cookies.keys():
-            if k.find( 'pb_' ) == 0:
-                oldbins.append( k[3:] )
+        oldbins = [s[3:] for s in self.request.cookies.keys() if s[:3] == 'pb_']
         if oldbins:
             self.response.out.write(template.render('templates/main.html', {'oldbins': oldbins}))
         else:
