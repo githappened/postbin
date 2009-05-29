@@ -11,8 +11,7 @@ class BinHandler(webapp.RequestHandler):
         if self.request.path[-1] == '/':
             self.redirect(self.request.path[:-1])
         bin = self._get_bin()
-        cookiekey = 'pb_' + bin.name # had to use a temp for some reason
-        if bin.privatebin and (cookiekey not in self.request.cookies or bin.privatebin != self.request.cookies[cookiekey] ):
+        if not self.check_secret( bin ):
             self.redirect( '/' )
         posts = bin.post_set.order('-created').fetch(50)
         request = self.request
@@ -31,6 +30,15 @@ class BinHandler(webapp.RequestHandler):
                             payload=urllib.urlencode(dict(self.request.POST)), method='POST')
         self.redirect('/%s' % bin.name)
         
+    def check_secret( self, bin ):
+        retval = True
+        if bin.privatebin:
+            cookiekey = 'pb_' + bin.name # had to use a temp for some reason
+            if cookiekey not in self.request.cookies or bin.privatebin != self.request.cookies[cookiekey]:
+                retval = False
+        return retval
+    
+    
     def _get_bin(self):
         name = self.request.path.replace('/', '')
         bin = Bin.all().filter('name =', name).get()
