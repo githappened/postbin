@@ -20,7 +20,6 @@ class MainHandler(webapp.RequestHandler):
 
     def post(self):
         bin = Bin()
-        bin.privatebin = ''
         if bool( self.request.get( 'privatebin' ) ):
             bin.privatebin = self.make_secret()
         bin.escapehtml = bool( self.request.get( 'escapehtml' ) )
