@@ -33,11 +33,10 @@ class BinHandler(webapp.RequestHandler):
     def check_secret( self, bin ):
         retval = True
         if bin.privatebin:
-            cookiekey = 'pb_' + bin.name # had to use a temp for some reason
+            cookiekey = 'pb_' + bin.name
             if cookiekey not in self.request.cookies or bin.privatebin != self.request.cookies[cookiekey]:
                 retval = False
         return retval
-    
     
     def _get_bin(self):
         name = self.request.path.replace('/', '')
