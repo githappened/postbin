@@ -20,6 +20,8 @@ class MainHandler(webapp.RequestHandler):
         bin.privatebin = self.make_secret_maybe()
         bin.escapehtml = bool( self.request.get( 'escapehtml' ) )
         self.response.headers.add_header( 'Set-Cookie', 'pb_' + bin.name + '=' + bin.privatebin )
+        self.response.headers.add_header( 'Cache-Control', 'no-cache' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
+        self.response.headers.add_header( 'Expires', 'Fri, 01 Jan 1990 00:00:00 GMT' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
         bin.put()
         self.redirect('/%s' % bin.name)
     
