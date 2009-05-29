@@ -20,20 +20,21 @@ class MainHandler(webapp.RequestHandler):
 
     def post(self):
         bin = Bin()
-        bin.privatebin = ''
-        if bool( self.request.get( 'privatebin' ) ):
-            bin.privatebin = self.make_secret()
+        bin.privatebin = self.make_secret_maybe()
         bin.escapehtml = bool( self.request.get( 'escapehtml' ) )
         self.response.headers.add_header( 'Set-Cookie', 'pb_' + bin.name + '=' + bin.privatebin )
         bin.put()
         self.redirect('/%s' % bin.name)
     
-    def make_secret( self ):
-        secret = md5.new()
-        secret.update( 'postbin ' + os.urandom( 42 ) )
-        secret.update( secret.hexdigest() )
-        secret.update( 'postbin ' + os.urandom( 42 ) )
-        return secret.hexdigest()
+    def make_secret_maybe( self ):
+        retval = ''
+        if bool( self.request.get( 'privatebin' ) ):
+            secret = md5.new()
+            secret.update( 'postbin ' + os.urandom( 42 ) )
+            secret.update( secret.hexdigest() )
+            secret.update( 'postbin ' + os.urandom( 42 ) )
+            retval = secret.hexdigest()
+        return retval
 
 
 if __name__ == '__main__':
