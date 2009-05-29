@@ -1,5 +1,13 @@
 {% extends 'base.html' %}
-{% block title %}PostBin - {{ bin.name }}{% endblock %}
+{% block title %}
+PostBin - {{ bin.name }}
+{% if bin.privatebin %}
+private
+{% endif %}
+{% if bin.escapehtml %}
+escaped
+{% endif %}
+{% endblock %}
 {% block content %}
   <p>All POST requests to this URL are logged for you to see here, sorted newest to oldest.</p>
   <ul>
@@ -12,13 +20,17 @@
         {{ post.remote_addr }} 
         {% if post.query_string %}?{{ post.query_string }}{% endif %}
       </div>
+      {% if bin.escapehtml %}
+      <pre>{{ post|escape }}</pre>
+      {% else %}
       <pre>{{ post }}</pre>
+      {% endif %}
     </li>
     {% endfor %}
   </ul>
   <form action="?test" method="post">
     <input type="hidden" name="foo" value="bar" />
-    <input type="hidden" name="bar" value="baz" />
+    <input type="hidden" name="bar" value="baz<br />" />
     <input type="submit" value="Test Post" />
   </form>
   <a href="/">Back Home</a>

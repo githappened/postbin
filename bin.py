@@ -11,6 +11,9 @@ class BinHandler(webapp.RequestHandler):
         if self.request.path[-1] == '/':
             self.redirect(self.request.path[:-1])
         bin = self._get_bin()
+        cookiekey = 'pb_' + bin.name # had to use a temp for some reason
+        if bin.privatebin and cookiekey not in self.request.cookies:
+            self.redirect( '/' )
         posts = bin.post_set.order('-created').fetch(50)
         request = self.request
         self.response.out.write(template.render('templates/bin.html', {'bin':bin, 'posts':posts, 'request':request}))

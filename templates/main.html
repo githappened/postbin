@@ -2,6 +2,16 @@
 {% block content %}
   <p>PostBin lets you debug web hooks by capturing and logging the asynchronous requests made when events happen. Make a PostBin and register the URL with a web hook provider. All POST requests to the URL are logged for you to see when you browse to that URL.</p>
   <form id="make-form" method="post">
-  <input type="submit" value="Make a PostBin">    
+  <input type="checkbox" name="privatebin" />private bin<br />
+  <input type="checkbox" name="escapehtml" />escape HTML<br />
+  <input type="submit" value="Make a PostBin" />    
   </form>
+  {% if oldbins %}
+  <h3>old postbins</h3>
+  <p>
+  {% for oldbin in oldbins %}
+  <a href="/{{oldbin}}">{{oldbin}}</a><br />
+  {% endfor %}
+  </p>
+  {% endif %}
 {% endblock %}
