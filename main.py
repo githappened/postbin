@@ -6,10 +6,11 @@ from models import Bin
 
 import md5
 import os
+import re
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
-        oldbins = [s[3:] for s in self.request.cookies.keys() if s[:3] == 'pb_']
+        oldbins = self.extract_postbin_names_from_cookies()
         if oldbins:
             self.response.out.write(template.render('templates/main.html', {'oldbins': oldbins}))
         else:
@@ -24,6 +25,12 @@ class MainHandler(webapp.RequestHandler):
         self.response.headers.add_header( 'Expires', 'Fri, 01 Jan 1990 00:00:00 GMT' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
         bin.put()
         self.redirect('/%s' % bin.name)
+    
+    def extract_postbin_names_from_cookies( self ):
+        retval = [s[3:] for s in self.request.cookies.keys() if s[:3] == 'pb_'] # get postbin names, after removing pb_ prefix
+        sf = re.compile( '\W' ) # match anything that is not a letter, number, or underscore
+        retval = [s for s in retval if not sf.search( s )] # try to remove anything naughty
+        return retval
     
     def make_secret_maybe( self, bin ):
         retval = ''
