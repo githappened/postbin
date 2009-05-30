@@ -27,9 +27,8 @@ class MainHandler(webapp.RequestHandler):
         self.redirect('/%s' % bin.name)
     
     def extract_postbin_names_from_cookies( self ):
-        retval = [s[3:] for s in self.request.cookies.keys() if s[:3] == 'pb_'] # get postbin names, after removing pb_ prefix
-        sf = re.compile( '\W' ) # match anything that is not a letter, number, or underscore
-        retval = [s for s in retval if not sf.search( s )] # try to remove anything naughty
+        naughty = re.compile( '\W' ) # match anything that is not a letter, number, or underscore
+        retval = [s[3:] for s in self.request.cookies.keys() if s[:3] == 'pb_' and not naughty.search( s[3:] )] # get postbin names, after removing pb_ prefix
         return retval
     
     def make_secret_maybe( self, bin ):
