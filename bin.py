@@ -22,16 +22,19 @@ class BinHandler(webapp.RequestHandler):
 
     def post(self):
         bin = self._get_bin()
-        post = Post(bin=bin, remote_addr=self.request.remote_addr)
-        post.headers        = dict(self.request.headers)
-        post.body           = self.request.body
-        post.query_string   = self.request.query_string
-        post.form_data      = dict(self.request.POST)
-        post.put()
-        if 'http://' in self.request.query_string:
-            urlfetch.fetch(url=self.request.query_string.replace('http://', 'http://hookah.webhooks.org/'), 
-                            payload=urllib.urlencode(dict(self.request.POST)), method='POST')
-        self.redirect('/%s' % bin.name)
+        if bin:
+            post = Post(bin=bin, remote_addr=self.request.remote_addr)
+            post.headers        = dict(self.request.headers)
+            post.body           = self.request.body
+            post.query_string   = self.request.query_string
+            post.form_data      = dict(self.request.POST)
+            post.put()
+            if 'http://' in self.request.query_string:
+                urlfetch.fetch(url=self.request.query_string.replace('http://', 'http://hookah.webhooks.org/'), 
+                                payload=urllib.urlencode(dict(self.request.POST)), method='POST')
+            self.redirect('/%s' % bin.name)
+        else:
+            self.redirect( '/' )
         
     def check_secret( self, bin ):
         retval = True
