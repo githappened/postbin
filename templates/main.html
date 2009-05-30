@@ -10,7 +10,7 @@
   <h3>old postbins</h3>
   <p>
   {% for oldbin in oldbins %}
-  <a href="/{{oldbin}}">{{oldbin}}</a><br />
+  <a href="/action/bin/delete/{{oldbin}}">delete</a> <a href="/{{oldbin}}">{{oldbin}}</a><br />
   {% endfor %}
   </p>
   {% endif %}

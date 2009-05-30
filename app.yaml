@@ -6,6 +6,8 @@ api_version: 1
 handlers:
 - url: /
   script: main.py
+- url: /action/bin/delete/.*
+  script: main.py
 - url: /favicon.ico
   static_files: static/favicon.ico
   upload: static/favicon.ico

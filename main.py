@@ -49,5 +49,16 @@ class MainHandler(webapp.RequestHandler):
         return bin is not None
     
 
+class BinDeleteHandler(webapp.RequestHandler):
+    def get(self):
+        name = self.request.path.split('/')[-1]
+        bin = Bin.all().filter( 'name =', name ).get() # FIX: is this expensive?
+        if( bin ):
+            if bin.post_set:
+                [p.delete() for p in bin.post_set]
+            bin.delete()
+        self.redirect( '/' )
+
+
 if __name__ == '__main__':
-    wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([('/', MainHandler)], debug=True))
+    wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([('/', MainHandler),('/action/bin/delete/.*', BinDeleteHandler)], debug=True))
