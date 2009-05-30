@@ -28,7 +28,7 @@ class MainHandler(webapp.RequestHandler):
     
     def extract_postbin_names_from_cookies( self ):
         naughty = re.compile( '\W' ) # match anything that is not a letter, number, or underscore
-        retval = [s[3:] for s in self.request.cookies.keys() if s[:3] == 'pb_' and not naughty.search( s[3:] )] # get postbin names, after removing pb_ prefix
+        retval = [s[3:] for s in self.request.cookies.keys() if s[:3] == 'pb_' and not naughty.search( s[3:] ) and self.is_valid_bin_name( s[3:] )] # get postbin names, after removing pb_ prefix
         return retval
     
     def make_secret_maybe( self, bin ):
@@ -44,6 +44,10 @@ class MainHandler(webapp.RequestHandler):
             retval += '_' + secret.hexdigest()
         return retval
 
+    def is_valid_bin_name( self, name ):
+        bin = Bin.all().filter( 'name =', name ).get() # FIX: is this expensive?
+        return bin is not None
+    
 
 if __name__ == '__main__':
     wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([('/', MainHandler)], debug=True))
