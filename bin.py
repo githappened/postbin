@@ -11,11 +11,14 @@ class BinHandler(webapp.RequestHandler):
         if self.request.path[-1] == '/':
             self.redirect(self.request.path[:-1])
         bin = self._get_bin()
-        if not self.check_secret( bin ):
+        if bin:
+            if not self.check_secret( bin ):
+                self.redirect( '/' )
+            posts = bin.post_set.order('-created').fetch(50)
+            request = self.request
+            self.response.out.write(template.render('templates/bin.html', {'bin':bin, 'posts':posts, 'request':request}))
+        else:
             self.redirect( '/' )
-        posts = bin.post_set.order('-created').fetch(50)
-        request = self.request
-        self.response.out.write(template.render('templates/bin.html', {'bin':bin, 'posts':posts, 'request':request}))
 
     def post(self):
         bin = self._get_bin()
