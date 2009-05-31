@@ -6,6 +6,8 @@ api_version: 1
 handlers:
 - url: /
   script: main.py
+- url: /delete/.*/.*
+  script: bin.py
 - url: /delete/.*
   script: main.py
 - url: /favicon.ico

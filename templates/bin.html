@@ -14,6 +14,7 @@ escaped
     {% for post in posts %}
     <li id="{{ post.id }}">
       <div>
+        <a href="/delete/{{bin.name}}/{{post.id}}">delete</a>
         <a href="#{{ post.id }}" title="A unique ID for this request">#{{ post.id }}</a> @ 
         {{ post.created|time:"H:i" }} {{ post.created|date:"M d Y" }}
         --

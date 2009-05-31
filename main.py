@@ -35,6 +35,29 @@ class BinDeleteHandler(webapp.RequestHandler):
         self.redirect( '/' )
 
 
+class PostDeleteHandler(webapp.RequestHandler):
+    def get(self):
+        binname = self.request.path.split('/')[-2]
+        postname = self.request.path.split('/')[-1]
+        if is_valid_postbin_name( binname ):
+            bin = Bin.all().filter( 'name =', binname ).get() # FIX: is this expensive?
+            if bin and bin.post_set:
+                theremustbeabetterway = True
+                offset = 0
+                while theremustbeabetterway:
+                    post = bin.post_set.fetch( 1, offset ) # FIX: there must be a better way
+                    offset += 1
+                    if post:
+                        if post[0].id() == postname:
+                            post[0].delete()
+                            theremustbeabetterway = False
+                    else:
+                        theremustbeabetterway = False
+            self.redirect( '/%s' % (binname) )
+        else:
+            self.redirect( '/' )
+
+
 # utilities
 
 def is_valid_postbin_name( name, badchars = None ):
@@ -62,4 +85,4 @@ def emit_cookie( handler, bin ):
 
 
 if __name__ == '__main__':
-    wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([('/', MainHandler),('/delete/.*', BinDeleteHandler)], debug=True))
+    wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([('/delete/.*', BinDeleteHandler),('/', MainHandler)], debug=True))

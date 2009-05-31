@@ -6,6 +6,8 @@ from google.appengine.api import urlfetch
 from models import Bin, Post
 import urllib
 
+import main
+
 class BinHandler(webapp.RequestHandler):
     def get(self):
         if self.request.path[-1] == '/':
@@ -54,4 +56,4 @@ class BinHandler(webapp.RequestHandler):
 
 
 if __name__ == '__main__':
-    wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([('/.*', BinHandler)], debug=True))
+    wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([('/delete/.*/.*', main.PostDeleteHandler),('/.*', BinHandler)], debug=True))
