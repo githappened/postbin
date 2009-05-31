@@ -24,7 +24,7 @@ class MainHandler(webapp.RequestHandler):
 
 
 class BinDeleteHandler(webapp.RequestHandler):
-    def get(self):
+    def post(self):
         name = self.request.path.split('/')[-1]
         if is_valid_postbin_name( name ):
             bin = Bin.all().filter( 'name =', name ).get() # FIX: is this expensive?
@@ -36,7 +36,7 @@ class BinDeleteHandler(webapp.RequestHandler):
 
 
 class PostDeleteHandler(webapp.RequestHandler):
-    def get(self):
+    def post(self):
         binname = self.request.path.split('/')[-2]
         postname = self.request.path.split('/')[-1]
         if is_valid_postbin_name( binname ):

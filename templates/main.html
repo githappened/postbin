@@ -10,7 +10,10 @@
   <h3>old postbins</h3>
   <p>
   {% for oldbin in oldbins %}
-  <a href="/delete/{{oldbin}}">delete</a> <a href="/{{oldbin}}">{{oldbin}}</a><br />
+  <form action="/delete/{{oldbin}}" method="post">
+    <a href="/{{oldbin}}">view {{oldbin}}</a>
+    <input type="submit" value="delete {{oldbin}}" />
+  </form>
   {% endfor %}
   </p>
   {% endif %}
