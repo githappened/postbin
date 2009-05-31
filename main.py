@@ -28,7 +28,7 @@ class MainHandler(webapp.RequestHandler):
     
     def extract_postbin_names_from_cookies( self ):
         naughty = re.compile( '\W' ) # match anything that is not a letter, number, or underscore
-        retval = [s[3:] for s in self.request.cookies.keys() if s[:3] == 'pb_' and not naughty.search( s[3:] ) and self.is_valid_bin_name( s[3:] )] # get postbin names, after removing pb_ prefix
+        retval = [str( s[3:] ) for s in self.request.cookies.keys() if s[:3] == 'pb_' and not naughty.search( s[3:] ) and self.is_valid_bin_name( s[3:] )] # get postbin names, after removing pb_ prefix
         return retval
     
     def make_secret_maybe( self, bin ):
