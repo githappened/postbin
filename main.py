@@ -10,55 +10,56 @@ import re
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
-        oldbins = self.extract_postbin_names_from_cookies()
-        if oldbins:
-            self.response.out.write(template.render('templates/main.html', {'oldbins': oldbins}))
-        else:
-            self.response.out.write(template.render('templates/main.html', {}))
+        oldbins = extract_postbin_names_from_cookie_keys( self.request.cookies.keys() )
+        self.response.out.write(template.render('templates/main.html', {'oldbins': oldbins}))
 
     def post(self):
         bin = Bin()
-        bin.privatebin = self.make_secret_maybe( bin )
-        bin.escapehtml = bool( self.request.get( 'escapehtml' ) )
-        self.response.headers.add_header( 'Set-Cookie', 'pb_%s=%s' % (bin.name, bin.privatebin) )
-        self.response.headers.add_header( 'Cache-Control', 'no-cache' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
-        self.response.headers.add_header( 'Expires', 'Fri, 01 Jan 1990 00:00:00 GMT' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
-        bin.put()
-        self.redirect('/%s' % bin.name)
-    
-    def extract_postbin_names_from_cookies( self ):
-        naughty = re.compile( '\W' ) # match anything that is not a letter, number, or underscore
-        retval = [str( s[3:] ) for s in self.request.cookies.keys() if s[:3] == 'pb_' and not naughty.search( s[3:] ) and self.is_valid_bin_name( s[3:] )] # get postbin names, after removing pb_ prefix
-        return retval
-    
-    def make_secret_maybe( self, bin ):
-        retval = ''
         if bool( self.request.get( 'privatebin' ) ):
-            retval += bin.name
-            secret = md5.new()
-            secret.update( 'postbin ' + os.urandom( 42 ) )
-            secret.update( secret.hexdigest() )
-            retval += '_' + secret.hexdigest()
-            secret.update( 'postbin ' + os.urandom( 56 ) )
-            secret.update( secret.hexdigest() )
-            retval += '_' + secret.hexdigest()
-        return retval
+            bin.privatebin = make_cookie_secret( bin )
+        bin.escapehtml = bool( self.request.get( 'escapehtml' ) )
+        bin.put()
+        emit_cookie( self, bin )
+        self.redirect('/%s' % bin.name)
 
-    def is_valid_bin_name( self, name ):
-        bin = Bin.all().filter( 'name =', name ).get() # FIX: is this expensive?
-        return bin is not None
-    
 
 class BinDeleteHandler(webapp.RequestHandler):
     def get(self):
         name = self.request.path.split('/')[-1]
-        bin = Bin.all().filter( 'name =', name ).get() # FIX: is this expensive?
-        if( bin ):
-            if bin.post_set:
-                [p.delete() for p in bin.post_set]
-            bin.delete()
+        if is_valid_postbin_name( name ):
+            bin = Bin.all().filter( 'name =', name ).get() # FIX: is this expensive?
+            if( bin ):
+                if bin.post_set:
+                    [p.delete() for p in bin.post_set]
+                bin.delete()
         self.redirect( '/' )
 
 
+# utilities
+
+def is_valid_postbin_name( name, badchars = None ):
+    if not badchars:
+        badchars = re.compile( '\W' ) # \W is anything that is NOT a letter, number, or underscore
+    bin = Bin.all().filter( 'name =', name ).get() # FIX: is this expensive?
+    return name and bin and not badchars.search( name )
+
+def is_valid_cookie_postbin_name( name, badchars ):
+    return name and name[:3] == 'pb_' and is_valid_postbin_name( name[3:], badchars )
+
+def extract_postbin_names_from_cookie_keys( keys ):
+    badchars = re.compile( '\W' ) # \W is anything that is NOT a letter, number, or underscore
+    return [s[3:] for s in keys if is_valid_cookie_postbin_name( s, badchars )] # postbin names, remove pb_ prefix
+
+def make_cookie_secret( bin ):
+    secret = md5.new()
+    secret.update( "Webhooks - so simple you'll think it's stupid" + os.urandom( 42 ) )
+    return '%s_%s' % (bin.name, secret.hexdigest())
+
+def emit_cookie( handler, bin ):
+    handler.response.headers.add_header( 'Set-Cookie', 'pb_%s=%s' % (bin.name, bin.privatebin) )
+    handler.response.headers.add_header( 'Cache-Control', 'no-cache' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
+    handler.response.headers.add_header( 'Expires', 'Thu, 01 Jan 1970 00:00:00 GMT' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
+
+
 if __name__ == '__main__':
-    wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([('/', MainHandler),('/action/bin/delete/.*', BinDeleteHandler)], debug=True))
+    wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([('/', MainHandler),('/delete/.*', BinDeleteHandler)], debug=True))
