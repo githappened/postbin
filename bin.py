@@ -14,7 +14,7 @@ class BinHandler(webapp.RequestHandler):
             self.redirect(self.request.path[:-1])
         bin = self._get_bin()
         if bin:
-            if not main.check_postbin_secret( self, bin ):
+            if not main.check_postbin_access( self, bin ):
                 self.redirect( '/' )
             posts = bin.post_set.order('-created').fetch(50)
             request = self.request

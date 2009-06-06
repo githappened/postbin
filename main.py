@@ -16,7 +16,7 @@ class MainHandler(webapp.RequestHandler):
     def post(self):
         bin = Bin()
         if bool( self.request.get( 'privatebin' ) ):
-            bin.privatebin = make_cookie_secret( bin )
+            bin.privatebin = make_cookie_vague( bin )
         bin.escapehtml = bool( self.request.get( 'escapehtml' ) )
         bin.put()
         emit_cookie( self, bin )
@@ -28,7 +28,7 @@ class BinDeleteHandler(webapp.RequestHandler):
         name = self.request.path.split('/')[-1]
         if is_valid_postbin_name( name ):
             bin = Bin.all().filter( 'name =', name ).get() # FIX: is this expensive?
-            if bin and check_postbin_secret( self, bin ):
+            if bin and check_postbin_access( self, bin ):
                 if bin.post_set:
                     [p.delete() for p in bin.post_set]
                 bin.delete()
@@ -42,7 +42,7 @@ class PostDeleteHandler(webapp.RequestHandler):
         deleteall = postname == 'all'
         if deleteall or is_valid_postbin_name( binname ):
             bin = Bin.all().filter( 'name =', binname ).get() # FIX: is this expensive?
-            if bin and bin.post_set and check_postbin_secret( self, bin ):
+            if bin and bin.post_set and check_postbin_access( self, bin ):
                 theremustbeabetterway = True
                 offset = 0
                 while theremustbeabetterway:
@@ -79,17 +79,17 @@ def extract_postbin_names_from_cookie_keys( keys ):
     badchars = re.compile( '\W' ) # \W is anything that is NOT a letter, number, or underscore
     return [s[len( prefixofbinname ):] for s in keys if is_valid_cookie_postbin_name( s, badchars )] # postbin names
 
-def make_cookie_secret( bin ):
-    secret = md5.new()
-    secret.update( "Webhooks - so simple you'll think it's stupid" + os.urandom( 42 ) )
-    return '%s_%s' % (bin.name, secret.hexdigest())
+def make_cookie_vague( bin ):
+    vague = md5.new()
+    vague.update( "Webhooks - so simple you'll think it's stupid" + os.urandom( 42 ) )
+    return '%s_%s' % (bin.name, vague.hexdigest())
 
 def emit_cookie( handler, bin ):
     handler.response.headers.add_header( 'Set-Cookie', '%s%s=%s' % (prefixofbinname, bin.name, bin.privatebin) )
     handler.response.headers.add_header( 'Cache-Control', 'no-cache' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
     handler.response.headers.add_header( 'Expires', 'Thu, 01 Jan 1970 00:00:00 GMT' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
 
-def check_postbin_secret( handler, bin ):
+def check_postbin_access( handler, bin ):
     retval = True
     if bin.privatebin:
         cookiekey = '%s%s' % (prefixofbinname, bin.name)
