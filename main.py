@@ -81,7 +81,7 @@ def extract_postbin_names_from_cookie_keys( keys ):
 
 def make_cookie_vague( bin ):
     vague = md5.new()
-    vague.update( "Webhooks - so simple you'll think it's stupid" + os.urandom( 42 ) )
+    vague.update( ''.join( [''.join( [c * 56 for c in os.urandom( 42 )] ), 'Webhooks - so simple you\'ll think it\'s stupid'] ) ) # FIX: needs cheaper vagueness
     return '%s_%s' % (bin.name, vague.hexdigest())
 
 def emit_cookie( handler, bin ):
