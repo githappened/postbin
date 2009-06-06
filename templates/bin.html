@@ -34,5 +34,8 @@ escaped
     <input type="hidden" name="bar" value="baz<br />" />
     <input type="submit" value="Test Post" />
   </form>
+  {% if posts %}
+    <form action="/delete/{{bin.name}}/all" method="post"><input type="submit" value="delete all posts in {{bin.name}}" /></form>
+  {% endif %}
   <a href="/">Back Home</a>
 {% endblock %}

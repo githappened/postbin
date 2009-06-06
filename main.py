@@ -39,16 +39,20 @@ class PostDeleteHandler(webapp.RequestHandler):
     def post(self):
         binname = self.request.path.split('/')[-2]
         postname = self.request.path.split('/')[-1]
-        if is_valid_postbin_name( binname ):
+        deleteall = postname == 'all'
+        if deleteall or is_valid_postbin_name( binname ):
             bin = Bin.all().filter( 'name =', binname ).get() # FIX: is this expensive?
-            if bin and bin.post_set:
+            if bin and bin.post_set and check_postbin_secret( self, bin ):
                 theremustbeabetterway = True
                 offset = 0
                 while theremustbeabetterway:
                     post = bin.post_set.fetch( 1, offset ) # FIX: there must be a better way
                     offset += 1
                     if post:
-                        if post[0].id() == postname:
+                        if deleteall:
+                            post[0].delete()
+                            offset = 0
+                        elif post[0].id() == postname:
                             post[0].delete()
                             theremustbeabetterway = False
                     else:
