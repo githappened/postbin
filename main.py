@@ -60,6 +60,8 @@ class PostDeleteHandler(webapp.RequestHandler):
 
 # utilities
 
+prefixofbinname = 'pb_'
+
 def is_valid_postbin_name( name, badchars = None ):
     if not badchars:
         badchars = re.compile( '\W' ) # \W is anything that is NOT a letter, number, or underscore
@@ -67,11 +69,11 @@ def is_valid_postbin_name( name, badchars = None ):
     return name and bin and not badchars.search( name )
 
 def is_valid_cookie_postbin_name( name, badchars ):
-    return name and name[:3] == 'pb_' and is_valid_postbin_name( name[3:], badchars )
+    return name and name.startswith( prefixofbinname ) and is_valid_postbin_name( name[len( prefixofbinname ):], badchars )
 
 def extract_postbin_names_from_cookie_keys( keys ):
     badchars = re.compile( '\W' ) # \W is anything that is NOT a letter, number, or underscore
-    return [s[3:] for s in keys if is_valid_cookie_postbin_name( s, badchars )] # postbin names, remove pb_ prefix
+    return [s[len( prefixofbinname ):] for s in keys if is_valid_cookie_postbin_name( s, badchars )] # postbin names
 
 def make_cookie_secret( bin ):
     secret = md5.new()
@@ -79,14 +81,14 @@ def make_cookie_secret( bin ):
     return '%s_%s' % (bin.name, secret.hexdigest())
 
 def emit_cookie( handler, bin ):
-    handler.response.headers.add_header( 'Set-Cookie', 'pb_%s=%s' % (bin.name, bin.privatebin) )
+    handler.response.headers.add_header( 'Set-Cookie', '%s%s=%s' % (prefixofbinname, bin.name, bin.privatebin) )
     handler.response.headers.add_header( 'Cache-Control', 'no-cache' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
     handler.response.headers.add_header( 'Expires', 'Thu, 01 Jan 1970 00:00:00 GMT' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
 
 def check_postbin_secret( handler, bin ):
     retval = True
     if bin.privatebin:
-        cookiekey = 'pb_%s' % (bin.name)
+        cookiekey = '%s%s' % (prefixofbinname, bin.name)
         if cookiekey not in handler.request.cookies or bin.privatebin != handler.request.cookies[cookiekey]:
             retval = False
     return retval
