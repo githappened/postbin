@@ -28,7 +28,7 @@ class BinDeleteHandler(webapp.RequestHandler):
         name = self.request.path.split('/')[-1]
         if is_valid_postbin_name( name ):
             bin = Bin.all().filter( 'name =', name ).get() # FIX: is this expensive?
-            if( bin ):
+            if bin and check_postbin_secret( self, bin ):
                 if bin.post_set:
                     [p.delete() for p in bin.post_set]
                 bin.delete()
