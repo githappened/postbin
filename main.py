@@ -83,6 +83,14 @@ def emit_cookie( handler, bin ):
     handler.response.headers.add_header( 'Cache-Control', 'no-cache' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
     handler.response.headers.add_header( 'Expires', 'Thu, 01 Jan 1970 00:00:00 GMT' ) # FIX: attempt to avoid cache bug? http://code.google.com/p/googleappengine/issues/detail?id=732
 
+def check_postbin_secret( handler, bin ):
+    retval = True
+    if bin.privatebin:
+        cookiekey = 'pb_%s' % (bin.name)
+        if cookiekey not in handler.request.cookies or bin.privatebin != handler.request.cookies[cookiekey]:
+            retval = False
+    return retval
+
 
 if __name__ == '__main__':
     wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([('/delete/.*', BinDeleteHandler),('/', MainHandler)], debug=True))
